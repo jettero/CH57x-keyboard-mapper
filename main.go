@@ -13,7 +13,8 @@ var (
 		{NOMOD, N5}, {NOMOD, N6}, {NOMOD, N7}, {NOMOD, N8},
 		{NOMOD, N9}, {NOMOD, N0}, {NOMOD, MINUS}, {NOMOD, EQUAL},
 
-		{NOMOD, COMMA}, {NOMOD, SLASH}, {NOMOD, DOT},
+		{NOMOD, VOL_DN}, {NOMOD, MUTE}, {NOMOD, VOL_UP},
+		{NOMOD, PREV}, {NOMOD, PLAY}, {NOMOD, NEXT},
 		{NOMOD, SCOLON}, {NOMOD, BSLASH}, {NOMOD, QUOTE},
 	}
 )
@@ -44,6 +45,7 @@ func main() {
 	err = kbd.SendHello()
 	if err != nil {
 		fmt.Println("error writing to device:", err)
+		os.Exit(0)
 	}
 	fmt.Println("sent hello")
 

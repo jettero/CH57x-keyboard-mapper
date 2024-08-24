@@ -9,9 +9,12 @@ import (
 
 // manu: wch.cn, product: CH57x, vendorID 4489, productID: 34960
 
+// why is one hex (maybe) and one decimal??
+// 4489:8890 ?? ... whatever. I'm at 0x514c, 0x8842 anyway
+
 const (
-	VENDOR_ID  = 4489
-	PRODUCT_ID = 34960
+	VENDOR_ID  = 0x514c
+	PRODUCT_ID = 0x8842
 	INTERFACE  = 1 // the programmable interface
 )
 
@@ -128,6 +131,9 @@ const (
 	ROT2CCW
 	ROT2
 	ROT2CW
+	ROT3CCW
+	ROT3
+	ROT3CW
 )
 
 type Keyboard struct {
@@ -152,22 +158,44 @@ func (k *Keyboard) Send(data []byte) error {
 	return err
 }
 
+func PrintDataInfo(Name string, Data []byte) {
+	size := 0
+	for i, b := range Data {
+		if b == 0x00 {
+			size = i
+			break
+		}
+	}
+
+	fmt.Printf("%s req(%d/%d)", Name, size, len(Data))
+	if size > 0 {
+		fmt.Printf(": ")
+		for i := 0; i < size; i++ {
+			fmt.Printf("%02x", Data[i])
+		}
+	}
+	fmt.Println()
+}
+
 func (k *Keyboard) SendHello() error {
-	req := make([]byte, 64)
+	req := make([]byte, 63)
+	PrintDataInfo("yolo", req)
 	return k.Send(req)
 }
 
 func (k *Keyboard) sendKeybindStart() error {
-	req := make([]byte, 64)
+	req := make([]byte, 63)
 	req[0] = 0xa1
 	req[1] = 0x01
+	PrintDataInfo("keybind start", req)
 	return k.Send(req)
 }
 
 func (k *Keyboard) sendKeybindEnd() error {
-	req := make([]byte, 64)
+	req := make([]byte, 63)
 	req[0] = 0xaa
 	req[1] = 0xaa
+	PrintDataInfo("keybind end", req)
 	return k.Send(req)
 }
 
@@ -179,10 +207,12 @@ func (k *Keyboard) BindKeyMacro(macro *Macro) error {
 	}
 
 	// header
-	req := make([]byte, 64)
+	req := make([]byte, 63)
 	req[0] = byte(macro.Key)                      // key ID
 	req[1] = byte(macro.Layer) + byte(macro.Type) // layer and macro type
 	req[2] = byte(macro.Len())                    // length
+
+	PrintDataInfo("keybind key data", req)
 
 	var combo []Sequence
 	if macro.Type == MACROKEYS {
@@ -213,13 +243,15 @@ func (k *Keyboard) BindMediaMacro(macro *Macro) error {
 	}
 
 	// header
-	req := make([]byte, 64)
+	req := make([]byte, 63)
 	req[0] = byte(macro.Key)                      // key ID
 	req[1] = byte(macro.Layer) + byte(macro.Type) // layer and macro type
 
+	PrintDataInfo("keybind media data", req)
+
 	var combo []Sequence
 	combo = macro.Combo
-	if (len(combo) > 1) {
+	if len(combo) > 1 {
 		//the rest of the keys will be ignored for now
 		fmt.Println("can't bind a media key macro larger then one key")
 	}
@@ -245,13 +277,15 @@ func (k *Keyboard) BindMouseMacro(macro *Macro) error {
 	}
 
 	// header
-	req := make([]byte, 64)
+	req := make([]byte, 63)
 	req[0] = byte(macro.Key)                      // key ID
 	req[1] = byte(macro.Layer) + byte(macro.Type) // layer and macro type
 
+	PrintDataInfo("keybind mouse data", req)
+
 	var combo []Sequence
 	combo = macro.Combo
-	if (len(combo) > 1) {
+	if len(combo) > 1 {
 		//the rest of the buttons will be ignored for now
 		fmt.Println("can't bind a mouse macro larger then one key")
 	}
@@ -263,9 +297,9 @@ func (k *Keyboard) BindMouseMacro(macro *Macro) error {
 		req[4] = byte(0x00)
 		req[5] = byte(0x00)
 	case Wheelcode:
-		req[2] = byte(0x00) // length?
-		req[3] = byte(0x00) // seq
-		req[4] = byte(0x00) // ??
+		req[2] = byte(0x00)                // length?
+		req[3] = byte(0x00)                // seq
+		req[4] = byte(0x00)                // ??
 		req[5] = byte(combo[0].Key.Code()) // mouse wheel code
 		req[6] = byte(combo[0].Mod)
 	default:
