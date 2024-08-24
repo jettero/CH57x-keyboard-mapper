@@ -9,8 +9,10 @@ import (
 
 // manu: wch.cn, product: CH57x, vendorID 4489, productID: 34960
 
-// why is one hex (maybe) and one decimal??
-// 4489:8890 ?? ... whatever. I'm at 0x514c, 0x8842 anyway
+// mah question: why is one hex (maybe) and one decimal?? 4489:8890 ??
+// oh, the rust project (https://github.com/kriomant/ch57x-keyboard-tool) has 1189:8890,
+// which is 4489==0x1189, neat.
+// ... whatever. I'm at 514c:8842 anyway
 
 const (
 	VENDOR_ID  = 0x514c
